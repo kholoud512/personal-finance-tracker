@@ -1,0 +1,7 @@
+id,date,description,category,type,amount
+1,2025-11-12,November Salary,salary,income,3000
+2,2025-11-12,Groceries at Carrefour,food,expense,50
+3,2025-11-12,Metro ticket,transport,expense,25
+4,2025-11-12,Electric bill,utilities,expense,120
+5,2025-11-12,Restaurant dinner,food,expense,80
+6,2025-11-12,Test Groceries,food,expense,100

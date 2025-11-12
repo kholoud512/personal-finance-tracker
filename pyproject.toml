@@ -1,0 +1,58 @@
+[tool.poetry]
+name = "personal-finance-tracker"
+version = "0.1.0"
+description = "A CLI tool for tracking personal finances with visualization capabilities"
+authors = ["Kholoud Ibrahim <thmanabrahym512@gmail.com>"]
+license = "MIT"
+readme = "README.md"
+homepage = "https://github.com/kholoud512/personal-finance-tracker"
+repository = "https://github.com/kholoud512/personal-finance-tracker"
+keywords = ["finance", "cli", "budget", "tracker"]
+packages = [{include = "finance_tracker"}]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: End Users/Desktop",
+    "Topic :: Office/Business :: Financial",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+]
+
+# Define the CLI entry point
+[tool.poetry.scripts]
+finance = "finance_tracker.cli:main"
+
+[tool.poetry.dependencies]
+python = "^3.9"
+click = "^8.1.7"           # CLI framework
+rich = "^13.7.0"           # Beautiful terminal output
+peewee = "^3.17.0"         # Lightweight ORM for database
+pandas = "^2.1.4"          # Data analysis and manipulation
+matplotlib = "^3.8.2"      # Data visualization
+python-dateutil = "^2.8.2" # Date parsing utilities
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^7.4.3"          # Testing framework (for Lecture 5)
+pytest-cov = "^4.1.0"      # Test coverage (for Lecture 5)
+black = "^23.12.1"         # Code formatter (for Lecture 5)
+ruff = "^0.1.9"            # Linter (for Lecture 5)
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.black]
+line-length = 88
+target-version = ['py39']
+
+[tool.ruff]
+line-length = 88
+select = ["E", "F", "W", "I"]
+ignore = []
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_functions = ["test_*"]
+addopts = "--cov=finance_tracker --cov-report=html --cov-report=term"

@@ -7,7 +7,7 @@ __version__ = "0.1.0"
 __author__ = "Kholoud Ibrahim"
 __email__ = "thmanabrahym512@gmail.com"
 
-from .database import init_db, Transaction, Category
 from .cli import main
+from .database import Category, Transaction, init_db
 
 __all__ = ['init_db', 'Transaction', 'Category', 'main']

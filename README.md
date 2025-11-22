@@ -256,7 +256,7 @@ CLI entry point is defined in `pyproject.toml`:
 finance = "finance_tracker.cli:main"
 ```
 
-## Testing 
+## Testing
 
 ```bash
 # Run all tests
@@ -269,7 +269,7 @@ poetry run pytest --cov=finance_tracker
 poetry run pytest tests/test_cli.py
 ```
 
-## Code Quality 
+## Code Quality
 
 ```bash
 # Format code with black
@@ -338,8 +338,8 @@ finance list  # Will recreate database
 
 ## Author
 
-**Kholoud Ibrahim**  
-Email: thmanabrahym512@gmail.com  
+**Kholoud Ibrahim**
+Email: thmanabrahym512@gmail.com
 Another Email: kholoudibrahim512@gmail.com
 GitHub: [@kholoud512](https://github.com/kholoud512)
 
@@ -351,5 +351,5 @@ GitHub: [@kholoud512](https://github.com/kholoud512)
 - Database with [Peewee ORM](http://docs.peewee-orm.com/)
 
 ---
-  
+
 **Build Tool Demonstration**: Poetry for Python project management

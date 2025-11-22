@@ -10,4 +10,4 @@ __email__ = "thmanabrahym512@gmail.com"
 from .cli import main
 from .database import Category, Transaction, init_db
 
-__all__ = ['init_db', 'Transaction', 'Category', 'main']
+__all__ = ["init_db", "Transaction", "Category", "main"]

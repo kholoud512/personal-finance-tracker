@@ -45,17 +45,13 @@ class Transaction(BaseModel):
     amount = DecimalField(max_digits=10, decimal_places=2)
     description = CharField()
     category = ForeignKeyField(Category, backref="transactions")
-    transaction_type = CharField(
-        choices=[("income", "Income"), ("expense", "Expense")]
-    )
+    transaction_type = CharField(choices=[("income", "Income"), ("expense", "Expense")])
     date = DateField(default=datetime.now)
     created_at = DateTimeField(default=datetime.now)
 
     class Meta:
         table_name = "transactions"
-        indexes = (
-            (("date", "transaction_type"), False),
-        )
+        indexes = ((("date", "transaction_type"), False),)
 
     def __str__(self):
         return f"{self.date} - {self.description}: ${self.amount}"

@@ -19,13 +19,9 @@ def generate_summary(month, year):
         Dictionary with summary data
     """
     # Query transactions for the specified month using SQLite strftime
-    transactions = (
-        Transaction
-        .select()
-        .where(
-            (fn.strftime('%m', Transaction.date) == f"{month:02d}") &
-            (fn.strftime('%Y', Transaction.date) == str(year))
-        )
+    transactions = Transaction.select().where(
+        (fn.strftime("%m", Transaction.date) == f"{month:02d}")
+        & (fn.strftime("%Y", Transaction.date) == str(year))
     )
 
     total_income = 0
@@ -33,37 +29,33 @@ def generate_summary(month, year):
     expenses_by_category = {}
 
     for trans in transactions:
-        if trans.transaction_type == 'income':
+        if trans.transaction_type == "income":
             total_income += float(trans.amount)
         else:
             total_expense += float(trans.amount)
             cat_name = trans.category.name
-            expenses_by_category[cat_name] = (
-                expenses_by_category.get(cat_name, 0) + float(trans.amount)
-            )
+            expenses_by_category[cat_name] = expenses_by_category.get(
+                cat_name, 0
+            ) + float(trans.amount)
 
     # Calculate percentages
     category_data = []
     for cat, amount in sorted(
-        expenses_by_category.items(),
-        key=lambda x: x[1],
-        reverse=True
+        expenses_by_category.items(), key=lambda x: x[1], reverse=True
     ):
         percentage = (amount / total_expense * 100) if total_expense > 0 else 0
-        category_data.append({
-            'category': cat,
-            'amount': amount,
-            'percentage': percentage
-        })
+        category_data.append(
+            {"category": cat, "amount": amount, "percentage": percentage}
+        )
 
     return {
-        'total_income': total_income,
-        'total_expense': total_expense,
-        'by_category': category_data
+        "total_income": total_income,
+        "total_expense": total_expense,
+        "by_category": category_data,
     }
 
 
-def generate_chart(month, year, output_file='chart.png'):
+def generate_chart(month, year, output_file="chart.png"):
     """
     Generate pie chart of expenses by category
 
@@ -74,13 +66,13 @@ def generate_chart(month, year, output_file='chart.png'):
     """
     summary = generate_summary(month, year)
 
-    if not summary['by_category']:
+    if not summary["by_category"]:
         print("No expense data to visualize")
         return
 
     # Prepare data for pie chart
-    categories = [item['category'] for item in summary['by_category']]
-    amounts = [item['amount'] for item in summary['by_category']]
+    categories = [item["category"] for item in summary["by_category"]]
+    amounts = [item["amount"] for item in summary["by_category"]]
 
     # Create pie chart
     plt.figure(figsize=(10, 8))
@@ -90,33 +82,29 @@ def generate_chart(month, year, output_file='chart.png'):
     plt.pie(
         amounts,
         labels=categories,
-        autopct='%1.1f%%',
+        autopct="%1.1f%%",
         startangle=90,
         colors=colors,
         explode=explode,
-        shadow=True
+        shadow=True,
     )
 
-    plt.title(
-        f'Expenses by Category - {month}/{year}',
-        fontsize=16,
-        fontweight='bold'
-    )
-    plt.axis('equal')
+    plt.title(f"Expenses by Category - {month}/{year}", fontsize=16, fontweight="bold")
+    plt.axis("equal")
 
     # Add summary text
-    total_expense = summary['total_expense']
+    total_expense = summary["total_expense"]
     plt.text(
         0,
         -1.3,
-        f'Total Expenses: ${total_expense:.2f}',
-        ha='center',
+        f"Total Expenses: ${total_expense:.2f}",
+        ha="center",
         fontsize=12,
-        bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.5)
+        bbox=dict(boxstyle="round", facecolor="wheat", alpha=0.5),
     )
 
     plt.tight_layout()
-    plt.savefig(output_file, dpi=300, bbox_inches='tight')
+    plt.savefig(output_file, dpi=300, bbox_inches="tight")
     plt.close()
 
 
@@ -130,17 +118,17 @@ def get_monthly_trend(year):
     Returns:
         Dictionary with monthly data
     """
-    monthly_data = {month: {'income': 0, 'expense': 0} for month in range(1, 13)}
+    monthly_data = {month: {"income": 0, "expense": 0} for month in range(1, 13)}
 
     transactions = Transaction.select().where(
-        fn.strftime('%Y', Transaction.date) == str(year)
+        fn.strftime("%Y", Transaction.date) == str(year)
     )
 
     for trans in transactions:
         month = trans.date.month
-        if trans.transaction_type == 'income':
-            monthly_data[month]['income'] += float(trans.amount)
+        if trans.transaction_type == "income":
+            monthly_data[month]["income"] += float(trans.amount)
         else:
-            monthly_data[month]['expense'] += float(trans.amount)
+            monthly_data[month]["expense"] += float(trans.amount)
 
     return monthly_data

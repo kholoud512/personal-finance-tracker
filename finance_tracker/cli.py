@@ -8,6 +8,8 @@ from rich import box
 from rich.console import Console
 from rich.table import Table
 
+from finance_tracker.logger import logger
+
 from .database import Category, Transaction, init_db
 from .reports import generate_chart, generate_summary
 
@@ -18,6 +20,7 @@ console = Console()
 @click.version_option(version="0.1.0")
 def main():
     """Personal Finance Tracker - Manage your income and expenses"""
+    logger.debug("CLI application started")
 
     # Prevent DB initialization during tests
     if not getattr(sys, "_called_from_test", False):
@@ -46,6 +49,11 @@ def main():
 )
 def add(amount, description, category, trans_type, date):
     """Add a new transaction"""
+    logger.info(
+        f"CLI: Adding {trans_type} - Amount: ${amount}, "
+        f"Category: {category}, Description: {description}"
+    )
+
     try:
         cat, _ = Category.get_or_create(name=category.lower())
         Transaction.create(
@@ -61,7 +69,11 @@ def add(amount, description, category, trans_type, date):
             style="bold",
         )
 
+        logger.debug("Transaction added successfully via CLI")
+
     except Exception as e:
+        logger.error(f"CLI add command failed: {e}")
+
         if getattr(sys, "_called_from_test", False):
             raise e
         console.print(f"[red]Error:[/red] {str(e)}")
@@ -204,6 +216,7 @@ def chart(month, year, output):
 @click.argument("transaction_id", type=int)
 def delete(transaction_id):
     """Delete a transaction by ID"""
+    logger.warning(f"CLI: User requesting deletion of transaction {transaction_id}")
     try:
         transaction = Transaction.get_by_id(transaction_id)
         desc = transaction.description
@@ -227,6 +240,7 @@ def delete(transaction_id):
 )
 def export(output):
     """Export all transactions to CSV"""
+    logger.info(f"CLI: Exporting transactions to {output}")
     try:
         import pandas as pd
 
@@ -249,6 +263,8 @@ def export(output):
         console.print(
             f"[green]✓[/green] Exported {len(data)} transactions to: {output}"
         )
+
+        logger.info(f"CLI: Successfully exported {len(data)} transactions")
 
     except Exception as e:
         if getattr(sys, "_called_from_test", False):

@@ -4,6 +4,8 @@ Reports and data visualization module
 import matplotlib.pyplot as plt
 from peewee import fn
 
+from finance_tracker.logger import logger
+
 from .database import Transaction
 
 
@@ -18,6 +20,8 @@ def generate_summary(month, year):
     Returns:
         Dictionary with summary data
     """
+    logger.info(f"Generating summary for {month}/{year}")
+
     # Query transactions for the specified month using SQLite strftime
     transactions = Transaction.select().where(
         (fn.strftime("%m", Transaction.date) == f"{month:02d}")
@@ -48,6 +52,14 @@ def generate_summary(month, year):
             {"category": cat, "amount": amount, "percentage": percentage}
         )
 
+        logger.debug(
+            f"Summary complete - Income: ${total_income}, "
+            f"Expenses: ${total_expense}"
+        )
+
+    if not expenses_by_category:
+        logger.warning(f"No expenses found for {month}/{year}")
+
     return {
         "total_income": total_income,
         "total_expense": total_expense,
@@ -64,9 +76,11 @@ def generate_chart(month, year, output_file="chart.png"):
         year: Year (e.g., 2024)
         output_file: Output filename for the chart
     """
+    logger.info(f"Generating expense chart for {month}/{year}")
     summary = generate_summary(month, year)
 
     if not summary["by_category"]:
+        logger.warning(f"No expense data to visualize for {month}/{year}")
         print("No expense data to visualize")
         return
 
@@ -104,8 +118,14 @@ def generate_chart(month, year, output_file="chart.png"):
     )
 
     plt.tight_layout()
-    plt.savefig(output_file, dpi=300, bbox_inches="tight")
-    plt.close()
+    try:
+        plt.savefig(output_file, dpi=300, bbox_inches="tight")
+        logger.info(f"Chart saved successfully: {output_file}")
+    except Exception as e:
+        logger.error(f"Failed to save chart: {e}", exc_info=True)
+        raise
+    finally:
+        plt.close()
 
 
 def get_monthly_trend(year):

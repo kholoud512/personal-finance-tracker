@@ -1,233 +1,272 @@
 """
 Tests for CLI commands
-Run with: poetry run pytest tests/test_cli.py -v
+Run with: poetry run pytest
 """
+
 import pytest
 from click.testing import CliRunner
+
 from finance_tracker.cli import main
-from finance_tracker.database import db, Category, Transaction
-import os
-
-
-@pytest.fixture(scope="function")
-def runner():
-    """Create a CLI runner for testing"""
-    return CliRunner()
+from finance_tracker.database import Category, Transaction, db
 
 
 @pytest.fixture(scope="function")
 def test_db():
-    """Create a test database"""
-    # Use a temporary test database
-    test_db_path = '/tmp/test_finance.db'
-    
-    # Remove if exists
-    if os.path.exists(test_db_path):
-        os.remove(test_db_path)
-    
-    # Initialize test database
-    db.init(test_db_path)
-    db.connect()
+    """Create a test database using in-memory SQLite"""
+    db.init(":memory:")
     db.create_tables([Category, Transaction])
-    
-    # Create default categories
-    default_categories = ['salary', 'food', 'transport', 'utilities', 'other']
-    for cat_name in default_categories:
-        Category.get_or_create(name=cat_name)
-    
+
     yield db
-    
-    # Cleanup
+
     db.close()
-    if os.path.exists(test_db_path):
-        os.remove(test_db_path)
+
+
+@pytest.fixture
+def runner():
+    """Click CLI runner"""
+    return CliRunner()
 
 
 def test_cli_help(runner):
-    """Test that CLI help command works"""
-    result = runner.invoke(main, ['--help'])
+    result = runner.invoke(
+        main,
+        ["--help"],
+        standalone_mode=False,
+    )
     assert result.exit_code == 0
-    assert 'Personal Finance Tracker' in result.output
-    assert 'add' in result.output
-    assert 'list' in result.output
+    assert "Personal Finance Tracker" in result.output
 
 
 def test_cli_version(runner):
-    """Test that version command works"""
-    result = runner.invoke(main, ['--version'])
+    result = runner.invoke(
+        main,
+        ["--version"],
+        standalone_mode=False,
+    )
     assert result.exit_code == 0
-    assert '0.1.0' in result.output
+    assert "0.1.0" in result.output
 
 
 def test_add_expense(runner, test_db):
-    """Test adding an expense transaction"""
-    result = runner.invoke(main, [
-        'add',
-        '-a', '50.00',
-        '-d', 'Test groceries',
-        '-c', 'food',
-        '-t', 'expense'
-    ])
-    
+    result = runner.invoke(
+        main,
+        [
+            "add",
+            "-a",
+            "50",
+            "-d",
+            "Lunch",
+            "-c",
+            "food",
+            "-t",
+            "expense",
+        ],
+        standalone_mode=False,
+    )
     assert result.exit_code == 0
-    assert 'Added expense' in result.output or '✓' in result.output
-    
-    # Verify transaction was created
-    transactions = Transaction.select()
-    assert len(list(transactions)) > 0
+    assert "Added expense" in result.output
+    assert Transaction.select().count() == 1
 
 
 def test_add_income(runner, test_db):
-    """Test adding an income transaction"""
-    result = runner.invoke(main, [
-        'add',
-        '-a', '2000.00',
-        '-d', 'Monthly salary',
-        '-c', 'salary',
-        '-t', 'income'
-    ])
-    
+    result = runner.invoke(
+        main,
+        [
+            "add",
+            "-a",
+            "100",
+            "-d",
+            "Salary",
+            "-c",
+            "salary",
+            "-t",
+            "income",
+        ],
+        standalone_mode=False,
+    )
     assert result.exit_code == 0
-    assert 'income' in result.output.lower() or '✓' in result.output
+    assert "Added income" in result.output
+    assert Transaction.select().count() == 1
 
 
 def test_add_with_date(runner, test_db):
-    """Test adding transaction with specific date"""
-    result = runner.invoke(main, [
-        'add',
-        '-a', '30.00',
-        '-d', 'Bus pass',
-        '-c', 'transport',
-        '-t', 'expense',
-        '--date', '2024-11-01'
-    ])
-    
+    date_str = "2025-11-21"
+    result = runner.invoke(
+        main,
+        [
+            "add",
+            "-a",
+            "75",
+            "-d",
+            "Dinner",
+            "-c",
+            "food",
+            "-t",
+            "expense",
+            "--date",
+            date_str,
+        ],
+        standalone_mode=False,
+    )
     assert result.exit_code == 0
+    assert "Added expense" in result.output
+    t = Transaction.get()
+    assert t.description == "Dinner"
+    assert t.date.strftime("%Y-%m-%d") == date_str
 
 
 def test_list_transactions(runner, test_db):
-    """Test listing transactions"""
-    # First add some transactions
-    runner.invoke(main, ['add', '-a', '50', '-d', 'Lunch', '-c', 'food', '-t', 'expense'])
-    runner.invoke(main, ['add', '-a', '100', '-d', 'Dinner', '-c', 'food', '-t', 'expense'])
-    
-    # Now list them
-    result = runner.invoke(main, ['list'])
-    
+    runner.invoke(
+        main,
+        ["add", "-a", "50", "-d", "Lunch", "-c", "food", "-t", "expense"],
+        standalone_mode=False,
+    )
+    runner.invoke(
+        main,
+        ["add", "-a", "100", "-d", "Dinner", "-c", "food", "-t", "expense"],
+        standalone_mode=False,
+    )
+
+    result = runner.invoke(
+        main,
+        ["list-transactions"],
+        standalone_mode=False,
+    )
     assert result.exit_code == 0
-    # Should show transactions in output
-    assert 'Lunch' in result.output or 'Dinner' in result.output or 'food' in result.output
+    assert "Lunch" in result.output
+    assert "Dinner" in result.output
 
 
 def test_list_with_limit(runner, test_db):
-    """Test listing with limit parameter"""
-    # Add multiple transactions
     for i in range(5):
-        runner.invoke(main, [
-            'add', '-a', '10', '-d', f'Test {i}', '-c', 'food', '-t', 'expense'
-        ])
-    
-    result = runner.invoke(main, ['list', '--limit', '3'])
+        runner.invoke(
+            main,
+            ["add", "-a", "10", "-d", f"Test {i}", "-c", "food", "-t", "expense"],
+            standalone_mode=False,
+        )
+
+    result = runner.invoke(
+        main,
+        ["list-transactions", "--limit", "3"],
+        standalone_mode=False,
+    )
     assert result.exit_code == 0
+    assert "Test 0" in result.output or "Test 4" in result.output
 
 
 def test_list_filter_by_type(runner, test_db):
-    """Test filtering transactions by type"""
-    # Add income and expense
-    runner.invoke(main, ['add', '-a', '1000', '-d', 'Salary', '-c', 'salary', '-t', 'income'])
-    runner.invoke(main, ['add', '-a', '50', '-d', 'Food', '-c', 'food', '-t', 'expense'])
-    
-    # List only expenses
-    result = runner.invoke(main, ['list', '--type', 'expense'])
+    runner.invoke(
+        main,
+        ["add", "-a", "1000", "-d", "Salary", "-c", "salary", "-t", "income"],
+        standalone_mode=False,
+    )
+    runner.invoke(
+        main,
+        ["add", "-a", "50", "-d", "Food", "-c", "food", "-t", "expense"],
+        standalone_mode=False,
+    )
+
+    result = runner.invoke(
+        main,
+        ["list-transactions", "--type", "expense"],
+        standalone_mode=False,
+    )
     assert result.exit_code == 0
+    assert "Food" in result.output
+    assert "Salary" not in result.output
 
 
 def test_summary_command(runner, test_db):
-    """Test summary command"""
-    # Add some transactions
-    runner.invoke(main, ['add', '-a', '2000', '-d', 'Salary', '-c', 'salary', '-t', 'income'])
-    runner.invoke(main, ['add', '-a', '100', '-d', 'Food', '-c', 'food', '-t', 'expense'])
-    
-    result = runner.invoke(main, ['summary'])
-    
+    runner.invoke(
+        main,
+        ["add", "-a", "1000", "-d", "Salary", "-c", "salary", "-t", "income"],
+        standalone_mode=False,
+    )
+    runner.invoke(
+        main,
+        ["add", "-a", "200", "-d", "Rent", "-c", "rent", "-t", "expense"],
+        standalone_mode=False,
+    )
+
+    result = runner.invoke(
+        main,
+        ["summary"],
+        standalone_mode=False,
+    )
     assert result.exit_code == 0
-    # Should contain financial summary info
-    assert 'Income' in result.output or 'Expense' in result.output or 'Balance' in result.output
+    assert "Total Income" in result.output
+    assert "Total Expenses" in result.output
+    assert "Net Balance" in result.output
 
 
-def test_export_command(runner, test_db):
-    """Test export to CSV"""
-    # Add a transaction
-    runner.invoke(main, ['add', '-a', '50', '-d', 'Test', '-c', 'food', '-t', 'expense'])
-    
-    # Export
-    result = runner.invoke(main, ['export', '--output', '/tmp/test_export.csv'])
-    
+def test_export_command(runner, test_db, tmp_path):
+    runner.invoke(
+        main,
+        ["add", "-a", "50", "-d", "Lunch", "-c", "food", "-t", "expense"],
+        standalone_mode=False,
+    )
+    output_file = tmp_path / "export.csv"
+    result = runner.invoke(
+        main,
+        ["export", "-o", str(output_file)],
+        standalone_mode=False,
+    )
     assert result.exit_code == 0
-    assert 'Exported' in result.output or '✓' in result.output
-    
-    # Check file was created
-    assert os.path.exists('/tmp/test_export.csv')
-    
-    # Cleanup
-    os.remove('/tmp/test_export.csv')
+    assert output_file.exists()
 
 
 def test_delete_command(runner, test_db):
-    """Test deleting a transaction"""
-    # Add a transaction
-    runner.invoke(main, ['add', '-a', '50', '-d', 'To Delete', '-c', 'food', '-t', 'expense'])
-    
-    # Get the transaction ID
-    transactions = Transaction.select()
-    if len(list(transactions)) > 0:
-        trans_id = list(transactions)[0].id
-        
-        # Delete it
-        result = runner.invoke(main, ['delete', str(trans_id)])
-        
-        # Should succeed (exit code 0) or show error message gracefully
-        assert result.exit_code == 0 or 'Error' in result.output
+    runner.invoke(
+        main,
+        ["add", "-a", "50", "-d", "Lunch", "-c", "food", "-t", "expense"],
+        standalone_mode=False,
+    )
+    t = Transaction.get()
+    result = runner.invoke(
+        main,
+        ["delete", str(t.id)],
+        standalone_mode=False,
+    )
+    assert result.exit_code == 0
+    assert "Deleted transaction" in result.output
+    assert Transaction.select().count() == 0
 
 
 def test_invalid_transaction_type(runner, test_db):
-    """Test that invalid transaction type is rejected"""
-    result = runner.invoke(main, [
-        'add',
-        '-a', '50',
-        '-d', 'Test',
-        '-c', 'food',
-        '-t', 'invalid_type'
-    ])
-    
-    # Should fail with non-zero exit code
+    result = runner.invoke(
+        main,
+        ["add", "-a", "50", "-d", "Lunch", "-c", "food", "-t", "invalid"],
+    )
     assert result.exit_code != 0
+    assert "not one of" in (result.output + str(result.exception or ""))
 
 
 def test_missing_required_fields(runner, test_db):
-    """Test that missing required fields cause error"""
-    result = runner.invoke(main, ['add', '-a', '50'])
-    
-    # Should fail due to missing required options
+    result = runner.invoke(
+        main,
+        ["add", "-a", "50"],
+    )
     assert result.exit_code != 0
+    full_output = result.output + str(result.exception or "")
+    assert "Missing option" in full_output or "missing" in full_output.lower()
 
 
-def test_chart_generation(runner, test_db):
-    """Test chart generation command"""
-    # Add some expense data
-    runner.invoke(main, ['add', '-a', '100', '-d', 'Food', '-c', 'food', '-t', 'expense'])
-    runner.invoke(main, ['add', '-a', '50', '-d', 'Transport', '-c', 'transport', '-t', 'expense'])
-    
-    # Generate chart
-    result = runner.invoke(main, ['chart', '--output', '/tmp/test_chart.png'])
-    
-    # Should complete without error
+def test_chart_generation(runner, test_db, tmp_path):
+    runner.invoke(
+        main,
+        ["add", "-a", "50", "-d", "Groceries", "-c", "food", "-t", "expense"],
+    )
+    runner.invoke(
+        main,
+        ["add", "-a", "30", "-d", "Bus ticket", "-c", "transport", "-t", "expense"],
+    )
+
+    output_file = tmp_path / "chart.png"
+    result = runner.invoke(
+        main,
+        ["chart", "-o", str(output_file)],
+    )
+
     assert result.exit_code == 0
-    
-    # Cleanup if file was created
-    if os.path.exists('/tmp/test_chart.png'):
-        os.remove('/tmp/test_chart.png')
-
-
-if __name__ == '__main__':
-    pytest.main([__file__, '-v'])
+    assert "Chart saved" in result.output
+    assert output_file.exists()

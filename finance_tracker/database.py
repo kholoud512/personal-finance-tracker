@@ -40,6 +40,18 @@ class Category(BaseModel):
 
 
 class Transaction(BaseModel):
+    """
+    Database model for storing financial transactions.
+
+    Attributes:
+        amount (DecimalField): Transaction amount
+        description (TextField): Transaction description
+        category (ForeignKeyField): Reference to transaction category
+        transaction_type (CharField): Type of transaction ('income' or 'expense')
+        date (DateField): Date of the transaction
+        created_at (DateTimeField): Timestamp when record was created
+    """
+
     amount = DecimalField(decimal_places=2)
     description = CharField()
     category = ForeignKeyField(Category, backref="transactions")

@@ -22,7 +22,6 @@ A command-line application for tracking personal finances with data visualizatio
 - **Operating System**: Linux, macOS, or Windows
 
 ### Installing Poetry
-
 ```bash
 # Linux, macOS, Windows (WSL)
 curl -sSL https://install.python-poetry.org | python3 -
@@ -37,7 +36,6 @@ poetry --version
 ## Installation
 
 ### 1. Clone the Repository
-
 ```bash
 git clone https://github.com/kholoud512/personal-finance-tracker.git
 cd personal-finance-tracker
@@ -46,7 +44,6 @@ cd personal-finance-tracker
 ### 2. Install Dependencies
 
 Poetry will automatically handle all dependencies:
-
 ```bash
 # Install all dependencies (production + development)
 poetry install
@@ -63,7 +60,6 @@ This command will:
 ## Building the Project
 
 ### Create Distributable Package
-
 ```bash
 # Build wheel and sdist packages
 poetry build
@@ -76,7 +72,6 @@ This creates:
 ### Version Management
 
 Update version in `pyproject.toml`:
-
 ```bash
 # Bump patch version (0.1.0 -> 0.1.1)
 poetry version patch
@@ -91,7 +86,6 @@ poetry version major
 ## Usage
 
 ### Activate Virtual Environment
-
 ```bash
 # Enter poetry shell
 poetry shell
@@ -100,7 +94,6 @@ poetry shell
 ```
 
 Or run commands without activating shell:
-
 ```bash
 poetry run finance --help
 ```
@@ -108,7 +101,6 @@ poetry run finance --help
 ### Available Commands
 
 #### Add a Transaction
-
 ```bash
 # Add an expense
 finance add -a 50.00 -d "Grocery shopping" -c food -t expense
@@ -121,7 +113,6 @@ finance add -a 30.00 -d "Bus pass" -c transport -t expense --date 2024-11-01
 ```
 
 #### List Transactions
-
 ```bash
 # List last 10 transactions
 finance list
@@ -135,7 +126,6 @@ finance list --type expense
 ```
 
 #### View Summary
-
 ```bash
 # Current month summary
 finance summary
@@ -145,7 +135,6 @@ finance summary --month 10 --year 2024
 ```
 
 #### Generate Chart
-
 ```bash
 # Generate chart for current month
 finance chart
@@ -155,14 +144,12 @@ finance chart --month 10 --year 2024 --output october_expenses.png
 ```
 
 #### Delete Transaction
-
 ```bash
 # Delete by ID (get ID from 'finance list')
 finance delete 5
 ```
 
 #### Export Data
-
 ```bash
 # Export all transactions to CSV
 finance export
@@ -172,7 +159,6 @@ finance export --output my_finances.csv
 ```
 
 ## Project Structure
-
 ```
 personal-finance-tracker/
 ├── finance_tracker/           # Main package directory
@@ -214,7 +200,6 @@ personal-finance-tracker/
 
 ### 1. Dependency Management
 All dependencies are declared in `pyproject.toml` with version constraints. Poetry resolves and locks exact versions in `poetry.lock`.
-
 ```bash
 # Add new dependency
 poetry add requests
@@ -228,7 +213,6 @@ poetry update
 
 ### 2. Virtual Environment
 Poetry automatically creates and manages isolated virtual environments:
-
 ```bash
 # Show environment info
 poetry env info
@@ -239,7 +223,6 @@ poetry env list
 
 ### 3. Packaging
 Build distributable packages:
-
 ```bash
 # Create wheel and source distribution
 poetry build
@@ -250,14 +233,12 @@ poetry publish
 
 ### 4. Scripts
 CLI entry point is defined in `pyproject.toml`:
-
 ```toml
 [tool.poetry.scripts]
 finance = "finance_tracker.cli:main"
 ```
 
 ## Testing
-
 ```bash
 # Run all tests
 poetry run pytest
@@ -270,7 +251,6 @@ poetry run pytest tests/test_cli.py
 ```
 
 ## Code Quality
-
 ```bash
 # Format code with black
 poetry run black finance_tracker/
@@ -281,6 +261,23 @@ poetry run ruff check finance_tracker/
 # Fix linting issues automatically
 poetry run ruff check --fix finance_tracker/
 ```
+
+## 📚 Generating API Documentation
+
+This project uses pdoc to generate API documentation from docstrings.
+```bash
+# Generate HTML documentation
+poetry run pdoc --html finance_tracker -o docs/api
+
+# View documentation
+# Open docs/api/finance_tracker/index.html in your browser
+```
+
+The generated documentation includes:
+- Module documentation
+- Function/method signatures
+- Docstring descriptions
+- Type hints
 
 ## Database
 

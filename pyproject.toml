@@ -37,6 +37,7 @@ pytest-cov = "^4.1.0"
 black = "^23.12.1"
 ruff = "^0.1.9"
 pre-commit = "^4.4.0"
+pdoc = "^16.0.0"
 
 [build-system]
 requires = ["poetry-core"]

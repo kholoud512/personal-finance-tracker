@@ -48,7 +48,24 @@ def main():
     help="Transaction date (YYYY-MM-DD)",
 )
 def add(amount, description, category, trans_type, date):
-    """Add a new transaction"""
+    """
+    Add a new transaction
+    This function creates a new transaction record with the specified details,
+    including amount, description, category, and type (income or expense).
+
+    Args:
+        amount (float): The transaction amount in currency units
+        description (str): A brief description of the transaction
+        category (str): The category name (e.g., 'food', 'salary', 'transport')
+        transaction_type (str): Either 'income' or 'expense'
+        date (str): Transaction date in YYYY-MM-DD format
+
+    Returns:
+        None
+
+    Example:
+        >>> add(50.0, "Groceries", "food", "expense", "2024-11-27")
+    """
     logger.info(
         f"CLI: Adding {trans_type} - Amount: ${amount}, "
         f"Category: {category}, Description: {description}"

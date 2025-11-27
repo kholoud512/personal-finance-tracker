@@ -12,13 +12,20 @@ from .database import Transaction
 def generate_summary(month, year):
     """
     Generate financial summary for a given month/year
+    Calculates total income, total expenses, and net savings for the given
+    month and year. If no period is specified, uses the current month.
 
     Args:
-        month: Month number (1-12)
-        year: Year (e.g., 2024)
+        month (int, optional): Month number (1-12). Defaults to current month.
+        year (int, optional): Year (e.g., 2024). Defaults to current year.
 
     Returns:
-        Dictionary with summary data
+        dict: Dictionary containing 'income', 'expenses', and 'savings' totals
+
+    Example:
+        >>> summary = generate_summary(11, 2024)
+        >>> print(summary['income'])
+        2000.0
     """
     logger.info(f"Generating summary for {month}/{year}")
 

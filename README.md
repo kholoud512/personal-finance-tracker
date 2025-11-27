@@ -161,21 +161,47 @@ finance export --output my_finances.csv
 ## Project Structure
 ```
 personal-finance-tracker/
-├── finance_tracker/           # Main package directory
-│   ├── __init__.py           # Package initialization
-│   ├── cli.py                # CLI interface and commands
-│   ├── database.py           # Database models (Peewee ORM)
-│   └── reports.py            # Reports and visualization
-├── tests/                    # Test directory (for Lecture 5)
+├── finance_tracker/                   # Main package directory
+│   ├── __init__.py                    # Package initialization
+│   ├── cli.py                         # CLI interface and commands (WITH DOCSTRINGS)
+│   ├── database.py                    # Database models (WITH DOCSTRINGS)
+│   ├── reports.py                     # Reports and visualization (WITH DOCSTRINGS)
+│   └── logger.py                      # Logger module (if exists)
+│
+├── tests/                             # Test directory
 │   ├── __init__.py
 │   ├── test_database.py
 │   ├── test_cli.py
 │   └── test_reports.py
-├── dist/                     # Built packages (created by 'poetry build')
-├── pyproject.toml           # Poetry configuration and dependencies
-├── poetry.lock              # Lock file with exact versions
-├── README.md                # This file
-└── .gitignore              # Git ignore rules
+│
+├── docs/                              # Documentation directory
+│   ├── api/                           # Generated API documentation
+│   │   ├── finance_tracker/
+│   │   │   ├── index.html
+│   │   │   ├── cli.html
+│   │   │   ├── database.html
+│   │   │   ├── reports.html
+│   │   │   └── logger.html
+│   │   ├── finance_tracker.html
+│   │   └── search.js
+│   │
+│   └── tutorials/                     # Tutorial directory
+│       └── tutorial.md                # Getting started tutorial
+│
+├── dist/                              # Built packages (from 'poetry build')
+│   ├── personal_finance_tracker-0.1.0-py3-none-any.whl
+│   └── personal_finance_tracker-0.1.0.tar.gz
+│
+├── htmlcov/                           # Test coverage reports
+│
+├── .git/                              # Git repository data
+├── .gitignore                         # Git ignore rules
+├── LICENSE                            # MIT License file
+├── README.md                          # Added documentation section
+├── pyproject.toml                     # Poetry configuration
+├── poetry.lock                        # Locked dependency versions
+├── chart.png                          # Sample generated chart
+└── export.csv                         # Sample exported data
 ```
 
 ## Dependencies
@@ -262,7 +288,7 @@ poetry run ruff check finance_tracker/
 poetry run ruff check --fix finance_tracker/
 ```
 
-## 📚 Generating API Documentation
+##  Generating API Documentation
 
 This project uses pdoc to generate API documentation from docstrings.
 ```bash

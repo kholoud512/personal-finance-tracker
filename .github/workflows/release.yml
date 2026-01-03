@@ -6,59 +6,64 @@ on:
       - 'v*.*.*'
 
 jobs:
+  test:
+    name: Run Tests Before Release
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Poetry
+        run: |
+          curl -sSL https://install.python-poetry.org | python3 -
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+      - name: Install dependencies
+        run: poetry install --no-root
+
+      - name: Run tests
+        run: poetry run pytest -v
+
   build-and-release:
     name: Build and Create Release
+    needs: test
     runs-on: ubuntu-latest
-    
+
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
-    
-    - name: Set up Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: '3.11'
-    
-    - name: Install Poetry
-      run: |
-        curl -sSL https://install.python-poetry.org | python3 -
-        echo "$HOME/.local/bin" >> $GITHUB_PATH
-    
-    - name: Install dependencies
-      run: poetry install
-    
-    - name: Build package
-      run: poetry build
-    
-    - name: Generate Changelog
-  id: changelog
-  run: |
-    echo "## What's Changed" > CHANGELOG.md
-    echo "" >> CHANGELOG.md
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-    PREVIOUS_TAG=$(git describe --abbrev=0 --tags \
-      $(git rev-list --tags --skip=1 --max-count=1) 2>/dev/null || echo "")
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
 
-    if [ -z "$PREVIOUS_TAG" ]; then
-      git log --pretty=format:"- %s (%h)" >> CHANGELOG.md
-    else
-      git log ${PREVIOUS_TAG}..HEAD --pretty=format:"- %s (%h)" >> CHANGELOG.md
-    fi
+      - name: Install Poetry
+        run: |
+          curl -sSL https://install.python-poetry.org | python3 -
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
 
-    echo "" >> CHANGELOG.md
-    echo "**Full Changelog**: https://github.com/${{ github.repository }}/compare/${PREVIOUS_TAG}...${{ github.ref_name }}" >> CHANGELOG.md
+      - name: Install dependencies
+        run: poetry install --no-root
 
-    echo "changelog=$(cat CHANGELOG.md | sed ':a;N;$!ba;s/\n/%0A/g')" >> $GITHUB_OUTPUT
+      - name: Build package
+        run: |
+          poetry build
+          ls dist/
 
-    
-    - name: Create Release
-      uses: softprops/action-gh-release@v1
-      with:
-        files: dist/*
-        body: ${{ steps.changelog.outputs.changelog }}
-        draft: false
-        prerelease: false
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            dist/*.whl
+            dist/*.tar.gz
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

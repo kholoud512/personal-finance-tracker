@@ -1,0 +1,77 @@
+name: Documentation
+
+on:
+  push:
+    branches: [ main, master ]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  build-docs:
+    name: Build Documentation
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+    
+    - name: Install Poetry
+      run: |
+        curl -sSL https://install.python-poetry.org | python3 -
+        echo "$HOME/.local/bin" >> $GITHUB_PATH
+    
+    - name: Install dependencies
+      run: poetry install
+    
+    #  API documentation with pdoc
+    - name: Generate API Documentation
+      run: |
+        poetry run pdoc --html finance_tracker -o docs/api --force
+        
+        # Create index.html that redirects to API docs
+        cat > docs/index.html << 'EOF'
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="utf-8">
+            <title>Personal Finance Tracker Documentation</title>
+            <meta http-equiv="refresh" content="0; url=api/finance_tracker/index.html">
+            <style>
+                body { font-family: Arial, sans-serif; text-align: center; padding: 50px; }
+            </style>
+        </head>
+        <body>
+            <h1>Personal Finance Tracker Documentation</h1>
+            <p>Redirecting to API documentation...</p>
+            <p>If not redirected, <a href="api/finance_tracker/index.html">click here</a>.</p>
+        </body>
+        </html>
+        EOF
+    
+    # Upload docs as artifact
+    - name: Upload artifact
+      uses: actions/upload-pages-artifact@v2
+      with:
+        path: docs/
+
+  deploy:
+    name: Deploy to GitHub Pages
+    needs: build-docs
+    runs-on: ubuntu-latest
+    
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    
+    steps:
+    - name: Deploy to GitHub Pages
+      id: deployment
+      uses: actions/deploy-pages@v3

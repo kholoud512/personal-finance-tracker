@@ -164,3 +164,19 @@ export.csv
 *.temp
 tmp/
 temp/
+
+# Generated documentation (local only)
+docs/api/
+
+# But keep the tutorials
+!docs/tutorials/
+
+# Coverage reports
+.coverage
+htmlcov/
+coverage.xml
+
+# Build artifacts
+dist/
+build/
+*.egg-info/

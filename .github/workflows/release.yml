@@ -33,18 +33,25 @@ jobs:
       run: poetry build
     
     - name: Generate Changelog
-      id: changelog
-      run: |
-        echo "## Release ${{ github.ref_name }}" > CHANGELOG.md
-        echo "" >> CHANGELOG.md
-        echo "### Changes in this release:" >> CHANGELOG.md
-        git log --pretty=format:"- %s" -10 >> CHANGELOG.md
-        
-        {
-          echo "changelog<<EOF"
-          cat CHANGELOG.md
-          echo "EOF"
-        } >> $GITHUB_OUTPUT
+  id: changelog
+  run: |
+    echo "## What's Changed" > CHANGELOG.md
+    echo "" >> CHANGELOG.md
+
+    PREVIOUS_TAG=$(git describe --abbrev=0 --tags \
+      $(git rev-list --tags --skip=1 --max-count=1) 2>/dev/null || echo "")
+
+    if [ -z "$PREVIOUS_TAG" ]; then
+      git log --pretty=format:"- %s (%h)" >> CHANGELOG.md
+    else
+      git log ${PREVIOUS_TAG}..HEAD --pretty=format:"- %s (%h)" >> CHANGELOG.md
+    fi
+
+    echo "" >> CHANGELOG.md
+    echo "**Full Changelog**: https://github.com/${{ github.repository }}/compare/${PREVIOUS_TAG}...${{ github.ref_name }}" >> CHANGELOG.md
+
+    echo "changelog=$(cat CHANGELOG.md | sed ':a;N;$!ba;s/\n/%0A/g')" >> $GITHUB_OUTPUT
+
     
     - name: Create Release
       uses: softprops/action-gh-release@v1
